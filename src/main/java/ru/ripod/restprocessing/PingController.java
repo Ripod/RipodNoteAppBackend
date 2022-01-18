@@ -3,7 +3,7 @@ package ru.ripod.restprocessing;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.ripod.restmodels.responses.BaseResponse;
+import ru.ripod.utils.restmodels.responses.BaseResponse;
 
 @RestController
 public class PingController {
