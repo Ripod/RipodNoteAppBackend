@@ -1,10 +1,12 @@
 package ru.ripod.restprocessing.auth;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.ripod.utils.dbmodels.User;
+import ru.ripod.actionprocessing.Authorization;
+import ru.ripod.utils.dbmodels.LoginData;
 import ru.ripod.utils.restmodels.exceptions.CustomException;
 import ru.ripod.utils.restmodels.responses.BaseResponse;
 import ru.ripod.utils.restmodels.responses.AuthResponse;
@@ -18,8 +20,12 @@ import static ru.ripod.actionprocessing.Authorization.*;
 public class LoginController {
 
     public static final String SESSION_ID = "SessionID";
-    private static void setSessionCookie(HttpServletResponse response, User curUser){
-        Cookie cookie = new Cookie(SESSION_ID, curUser.getToken());
+
+    @Autowired
+    private Authorization authorization;
+
+    private static void setSessionCookie(HttpServletResponse response, LoginData curLoginData) {
+        Cookie cookie = new Cookie(SESSION_ID, curLoginData.getToken());
         cookie.setMaxAge(1800);
         response.addCookie(cookie);
     }
@@ -31,9 +37,9 @@ public class LoginController {
             HttpServletResponse response
     ) {
         try {
-            User curUser = register(login, password);
-            setSessionCookie(response, curUser);
-            return new AuthResponse(0, "Registration successful", curUser.getId());
+            LoginData curLoginData = authorization.registerProcess(login, password);
+            setSessionCookie(response, curLoginData);
+            return new AuthResponse(0, "Registration successful", curLoginData.getUserId());
         } catch (CustomException exc) {
             return new BaseResponse(exc.getErrorCode(), exc.getMessage());
         }
@@ -46,9 +52,9 @@ public class LoginController {
             HttpServletResponse response
     ) {
         try {
-            User curUser = loginProcess(login, password);
-            setSessionCookie(response, curUser);
-            return new AuthResponse("Login successful", curUser.getId());
+            LoginData curLoginData = loginProcess(login, password);
+            setSessionCookie(response, curLoginData);
+            return new AuthResponse("Login successful", curLoginData.getUserId());
         } catch (CustomException exc) {
             return new BaseResponse(exc.getErrorCode(), exc.getMessage());
         }
@@ -59,7 +65,7 @@ public class LoginController {
             @RequestParam("login") String login,
             @CookieValue(name = SESSION_ID, defaultValue = "0") String token,
             HttpServletResponse response
-    ){
+    ) {
         try {
             logoutProcess(login, token);
             Cookie cookie = new Cookie(SESSION_ID, "0");
@@ -71,6 +77,18 @@ public class LoginController {
         }
     }
 
-
-
+    @GetMapping("renew")
+    public BaseResponse sessionRenew(
+            @RequestParam("login") String login,
+            @CookieValue(name = SESSION_ID, defaultValue = "0") String token,
+            HttpServletResponse response
+    ) {
+        try {
+            LoginData curLoginData = renewSessionProcess(login, token);
+            setSessionCookie(response, curLoginData);
+            return new AuthResponse("Session renewal successful", curLoginData.getUserId());
+        } catch (CustomException exc) {
+            return new BaseResponse(exc.getErrorCode(), exc.getMessage());
+        }
+    }
 }

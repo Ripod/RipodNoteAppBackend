@@ -1,18 +1,18 @@
 package ru.ripod.utils.restmodels.responses;
 
 public class AuthResponse extends BaseResponse{
-    private int id;
+    private long id;
 
-    public AuthResponse(String message, int id){
+    public AuthResponse(String message, long id){
         super(0, message);
         this.id = id;
     }
-    public AuthResponse(int code, String message, int id) {
+    public AuthResponse(int code, String message, long id) {
         super(code, message);
         this.id = id;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
