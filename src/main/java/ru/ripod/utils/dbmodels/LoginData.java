@@ -9,7 +9,7 @@ import static ru.ripod.utils.StorageUtil.dateFormatter;
 @Table(name = "logindata")
 public class LoginData {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private long userId;
     private String login;
     private String pass;

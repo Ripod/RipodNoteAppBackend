@@ -1,10 +1,7 @@
 package ru.ripod.restprocessing.auth;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.ripod.actionprocessing.Authorization;
 import ru.ripod.utils.dbmodels.LoginData;
 import ru.ripod.utils.restmodels.exceptions.CustomException;
@@ -34,10 +31,11 @@ public class LoginController {
     public BaseResponse registration(
             @RequestParam("login") String login,
             @RequestParam("pass") String password,
+            @RequestParam("name") String name,
             HttpServletResponse response
     ) {
         try {
-            LoginData curLoginData = authorization.registerProcess(login, password);
+            LoginData curLoginData = authorization.registerProcess(login, password, name);
             setSessionCookie(response, curLoginData);
             return new AuthResponse(0, "Registration successful", curLoginData.getUserId());
         } catch (CustomException exc) {
@@ -52,7 +50,7 @@ public class LoginController {
             HttpServletResponse response
     ) {
         try {
-            LoginData curLoginData = loginProcess(login, password);
+            LoginData curLoginData = authorization.loginProcess(login, password);
             setSessionCookie(response, curLoginData);
             return new AuthResponse("Login successful", curLoginData.getUserId());
         } catch (CustomException exc) {
@@ -62,12 +60,12 @@ public class LoginController {
 
     @GetMapping("logout")
     public BaseResponse logout(
-            @RequestParam("login") String login,
+            @RequestParam("userId") long userId,
             @CookieValue(name = SESSION_ID, defaultValue = "0") String token,
             HttpServletResponse response
     ) {
         try {
-            logoutProcess(login, token);
+            authorization.logoutProcess(userId, token);
             Cookie cookie = new Cookie(SESSION_ID, "0");
             cookie.setMaxAge(0);
             response.addCookie(cookie);
@@ -79,12 +77,12 @@ public class LoginController {
 
     @GetMapping("renew")
     public BaseResponse sessionRenew(
-            @RequestParam("login") String login,
+            @RequestParam("userId") long userId,
             @CookieValue(name = SESSION_ID, defaultValue = "0") String token,
             HttpServletResponse response
     ) {
         try {
-            LoginData curLoginData = renewSessionProcess(login, token);
+            LoginData curLoginData = authorization.renewSessionProcess(userId, token);
             setSessionCookie(response, curLoginData);
             return new AuthResponse("Session renewal successful", curLoginData.getUserId());
         } catch (CustomException exc) {
