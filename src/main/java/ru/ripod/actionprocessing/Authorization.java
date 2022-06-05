@@ -26,7 +26,7 @@ public class Authorization {
     @Autowired
     UserDataRepository userDataRepository;
 
-    public LoginData registerProcess(String login, String pass, String name) throws RegistrationException {
+    synchronized public LoginData registerProcess(String login, String pass, String name) throws RegistrationException {
         if(loginDataRepository.findByLogin(login) != null){
             throw new RegistrationException("This login is already taken");
         }
@@ -83,11 +83,11 @@ public class Authorization {
             throw new RegistrationException("Password doesn't contain small letter, capital letter or number");
     }
 
-    private static String encodePassword(String pass) {
+    static String encodePassword(String pass) {
         return DigestUtils.md5DigestAsHex(pass.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static void addTokenAndValidUntil(LoginData loginData){
+    synchronized private static void addTokenAndValidUntil(LoginData loginData){
         Calendar curTime = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         String curTimeString = dateFormatter.format(curTime.getTime());
         String tokenInitString = loginData.getUserId() + curTimeString;
@@ -97,7 +97,7 @@ public class Authorization {
         loginData.setTokenValidUntil(curTime.getTime());
     }
 
-    private LoginData validateToken(long id, String token) throws AccessException {
+    LoginData validateToken(long id, String token) throws AccessException {
         Optional<LoginData> curLoginDataOpt = loginDataRepository.findById(id);
         if (!curLoginDataOpt.isPresent()) throw new AccessException("You must be logged in to do this");
         LoginData curLoginData = curLoginDataOpt.get();

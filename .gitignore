@@ -2,3 +2,5 @@
 /target/
 /.idea/
 /NoteAppDB.db
+/storage/
+/buffer/
